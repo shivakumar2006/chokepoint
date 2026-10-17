@@ -1,0 +1,69 @@
+{
+  "resources": [
+    {"name": "prod-db", "crown_jewel": true},
+    {"name": "secrets-vault", "crown_jewel": true},
+    {"name": "iam-admin", "crown_jewel": true},
+    {"name": "s3-logs", "crown_jewel": false},
+    {"name": "s3-public-assets", "crown_jewel": false},
+    {"name": "ec2-instances", "crown_jewel": false},
+    {"name": "ci-artifacts", "crown_jewel": false},
+    {"name": "billing-api", "crown_jewel": false}
+  ],
+  "policies": [
+    {"name": "InternPolicy", "statements": [
+      {"actions": ["ec2:DescribeInstances"], "resources": ["ec2-instances"]},
+      {"actions": ["s3:GetObject"], "resources": ["s3-public-assets"]}
+    ]},
+    {"name": "DevPolicy", "statements": [
+      {"actions": ["ec2:RunInstances"], "resources": ["ec2-instances"]},
+      {"actions": ["s3:GetObject", "s3:PutObject"], "resources": ["ci-artifacts"]},
+      {"actions": ["iam:PassRole"], "resources": ["ec2-admin-role"]},
+      {"actions": ["iam:CreatePolicyVersion"], "resources": ["DevPolicy"]}
+    ]},
+    {"name": "DevOpsPolicy", "statements": [
+      {"actions": ["ec2:RunInstances"], "resources": ["ec2-instances"]},
+      {"actions": ["iam:PassRole"], "resources": ["ec2-admin-role"]}
+    ]},
+    {"name": "CIPolicy", "statements": [
+      {"actions": ["s3:*"], "resources": ["ci-artifacts"]},
+      {"actions": ["ec2:RunInstances"], "resources": ["ec2-instances"]}
+    ]},
+    {"name": "EC2AdminPolicy", "statements": [
+      {"actions": ["ec2:*"], "resources": ["ec2-instances"]},
+      {"actions": ["rds:*"], "resources": ["prod-db"]},
+      {"actions": ["secretsmanager:GetSecretValue"], "resources": ["secrets-vault"]}
+    ]},
+    {"name": "AdminPolicy", "statements": [
+      {"actions": ["iam:*"], "resources": ["iam-admin"]}
+    ]},
+    {"name": "ProdAppPolicy", "statements": [
+      {"actions": ["rds:*"], "resources": ["prod-db"]}
+    ]},
+    {"name": "BillingPolicy", "statements": [
+      {"actions": ["billing:*"], "resources": ["billing-api"]}
+    ]},
+    {"name": "LogsPolicy", "statements": [
+      {"actions": ["s3:GetObject", "s3:PutObject"], "resources": ["s3-logs"]}
+    ]}
+  ],
+  "groups": [
+    {"name": "interns", "policies": ["InternPolicy"]},
+    {"name": "developers", "policies": ["DevPolicy"]},
+    {"name": "devops", "policies": ["DevOpsPolicy"]},
+    {"name": "finance", "policies": ["BillingPolicy"]}
+  ],
+  "users": [
+    {"name": "intern", "groups": ["interns", "developers"], "policies": []},
+    {"name": "dev-alice", "groups": ["developers"], "policies": []},
+    {"name": "devops-bob", "groups": ["devops"], "policies": []},
+    {"name": "analyst-carol", "groups": ["finance"], "policies": []}
+  ],
+  "roles": [
+    {"name": "ec2-admin-role", "trust": [], "policies": ["EC2AdminPolicy"]},
+    {"name": "ci-role", "trust": ["developers"], "policies": ["CIPolicy"]},
+    {"name": "admin-role", "trust": ["devops"], "policies": ["AdminPolicy"]},
+    {"name": "app-role", "trust": [], "policies": ["ProdAppPolicy"]},
+    {"name": "billing-role", "trust": ["finance"], "policies": ["BillingPolicy"]},
+    {"name": "logs-role", "trust": [], "policies": ["LogsPolicy"]}
+  ]
+}

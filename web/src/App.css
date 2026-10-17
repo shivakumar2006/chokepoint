@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+html, body, #root { height: 100%; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: #05070d;
+  color: #e6edf7;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* subtle blueprint grid */
+.grid-bg {
+  background-image:
+    linear-gradient(to right, rgba(120, 150, 210, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(120, 150, 210, 0.06) 1px, transparent 1px);
+  background-size: 44px 44px;
+}
+
+/* animated attack-path edges */
+@keyframes flow { to { stroke-dashoffset: -24; } }
+.flow { stroke-dasharray: 8 6; animation: flow 0.9s linear infinite; }
+
+@keyframes ring { 0% { transform: scale(0.8); opacity: 0.8; } 100% { transform: scale(2.4); opacity: 0; } }
+.ring { transform-box: fill-box; transform-origin: center; animation: ring 1.8s ease-out infinite; }
+
+@keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.floaty { animation: floaty 6s ease-in-out infinite; }
+
+@keyframes sweep { from { background-position: 0% 50%; } to { background-position: 200% 50%; } }
+.shine-text {
+  background: linear-gradient(90deg, #22d3ee, #a78bfa, #fb7185, #22d3ee);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: sweep 6s linear infinite;
+}
+
+.glass { background: rgba(14, 20, 34, 0.72); backdrop-filter: blur(10px); border: 1px solid rgba(110, 140, 200, 0.16); }
+.scroll-thin::-webkit-scrollbar { width: 8px; height: 8px; }
+.scroll-thin::-webkit-scrollbar-thumb { background: #243049; border-radius: 8px; }

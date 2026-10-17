@@ -1,0 +1,8 @@
+[
+  {"principal": "ci-role", "resource": "ci-artifacts"},
+  {"principal": "dev-alice", "resource": "ci-artifacts"},
+  {"principal": "app-role", "resource": "prod-db"},
+  {"principal": "billing-role", "resource": "billing-api"},
+  {"principal": "logs-role", "resource": "s3-logs"},
+  {"principal": "devops", "resource": "iam-admin"}
+]
