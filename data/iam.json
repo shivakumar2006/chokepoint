@@ -1,69 +1,944 @@
 {
-  "resources": [
-    {"name": "prod-db", "crown_jewel": true},
-    {"name": "secrets-vault", "crown_jewel": true},
-    {"name": "iam-admin", "crown_jewel": true},
-    {"name": "s3-logs", "crown_jewel": false},
-    {"name": "s3-public-assets", "crown_jewel": false},
-    {"name": "ec2-instances", "crown_jewel": false},
-    {"name": "ci-artifacts", "crown_jewel": false},
-    {"name": "billing-api", "crown_jewel": false}
-  ],
-  "policies": [
-    {"name": "InternPolicy", "statements": [
-      {"actions": ["ec2:DescribeInstances"], "resources": ["ec2-instances"]},
-      {"actions": ["s3:GetObject"], "resources": ["s3-public-assets"]}
-    ]},
-    {"name": "DevPolicy", "statements": [
-      {"actions": ["ec2:RunInstances"], "resources": ["ec2-instances"]},
-      {"actions": ["s3:GetObject", "s3:PutObject"], "resources": ["ci-artifacts"]},
-      {"actions": ["iam:PassRole"], "resources": ["ec2-admin-role"]},
-      {"actions": ["iam:CreatePolicyVersion"], "resources": ["DevPolicy"]}
-    ]},
-    {"name": "DevOpsPolicy", "statements": [
-      {"actions": ["ec2:RunInstances"], "resources": ["ec2-instances"]},
-      {"actions": ["iam:PassRole"], "resources": ["ec2-admin-role"]}
-    ]},
-    {"name": "CIPolicy", "statements": [
-      {"actions": ["s3:*"], "resources": ["ci-artifacts"]},
-      {"actions": ["ec2:RunInstances"], "resources": ["ec2-instances"]}
-    ]},
-    {"name": "EC2AdminPolicy", "statements": [
-      {"actions": ["ec2:*"], "resources": ["ec2-instances"]},
-      {"actions": ["rds:*"], "resources": ["prod-db"]},
-      {"actions": ["secretsmanager:GetSecretValue"], "resources": ["secrets-vault"]}
-    ]},
-    {"name": "AdminPolicy", "statements": [
-      {"actions": ["iam:*"], "resources": ["iam-admin"]}
-    ]},
-    {"name": "ProdAppPolicy", "statements": [
-      {"actions": ["rds:*"], "resources": ["prod-db"]}
-    ]},
-    {"name": "BillingPolicy", "statements": [
-      {"actions": ["billing:*"], "resources": ["billing-api"]}
-    ]},
-    {"name": "LogsPolicy", "statements": [
-      {"actions": ["s3:GetObject", "s3:PutObject"], "resources": ["s3-logs"]}
-    ]}
-  ],
-  "groups": [
-    {"name": "interns", "policies": ["InternPolicy"]},
-    {"name": "developers", "policies": ["DevPolicy"]},
-    {"name": "devops", "policies": ["DevOpsPolicy"]},
-    {"name": "finance", "policies": ["BillingPolicy"]}
-  ],
-  "users": [
-    {"name": "intern", "groups": ["interns", "developers"], "policies": []},
-    {"name": "dev-alice", "groups": ["developers"], "policies": []},
-    {"name": "devops-bob", "groups": ["devops"], "policies": []},
-    {"name": "analyst-carol", "groups": ["finance"], "policies": []}
-  ],
-  "roles": [
-    {"name": "ec2-admin-role", "trust": [], "policies": ["EC2AdminPolicy"]},
-    {"name": "ci-role", "trust": ["developers"], "policies": ["CIPolicy"]},
-    {"name": "admin-role", "trust": ["devops"], "policies": ["AdminPolicy"]},
-    {"name": "app-role", "trust": [], "policies": ["ProdAppPolicy"]},
-    {"name": "billing-role", "trust": ["finance"], "policies": ["BillingPolicy"]},
-    {"name": "logs-role", "trust": [], "policies": ["LogsPolicy"]}
-  ]
+ "resources": [
+  {
+   "name": "prod-db",
+   "crown_jewel": true
+  },
+  {
+   "name": "secrets-vault",
+   "crown_jewel": true
+  },
+  {
+   "name": "iam-admin",
+   "crown_jewel": true
+  },
+  {
+   "name": "customer-pii-db",
+   "crown_jewel": true
+  },
+  {
+   "name": "kms-keys",
+   "crown_jewel": true
+  },
+  {
+   "name": "backup-vault",
+   "crown_jewel": true
+  },
+  {
+   "name": "ec2-instances",
+   "crown_jewel": false
+  },
+  {
+   "name": "s3-public-assets",
+   "crown_jewel": false
+  },
+  {
+   "name": "ci-artifacts",
+   "crown_jewel": false
+  },
+  {
+   "name": "billing-api",
+   "crown_jewel": false
+  },
+  {
+   "name": "s3-logs",
+   "crown_jewel": false
+  },
+  {
+   "name": "data-lake",
+   "crown_jewel": false
+  },
+  {
+   "name": "warehouse",
+   "crown_jewel": false
+  },
+  {
+   "name": "lambda-functions",
+   "crown_jewel": false
+  },
+  {
+   "name": "cfn-stacks",
+   "crown_jewel": false
+  },
+  {
+   "name": "sandbox-bucket",
+   "crown_jewel": false
+  },
+  {
+   "name": "contractor-share",
+   "crown_jewel": false
+  },
+  {
+   "name": "metrics",
+   "crown_jewel": false
+  },
+  {
+   "name": "audit-logs",
+   "crown_jewel": false
+  },
+  {
+   "name": "hr-records",
+   "crown_jewel": false
+  },
+  {
+   "name": "support-tickets",
+   "crown_jewel": false
+  },
+  {
+   "name": "cdn-config",
+   "crown_jewel": false
+  }
+ ],
+ "policies": [
+  {
+   "name": "InternPolicy",
+   "statements": [
+    {
+     "actions": [
+      "ec2:DescribeInstances"
+     ],
+     "resources": [
+      "ec2-instances"
+     ]
+    },
+    {
+     "actions": [
+      "s3:GetObject"
+     ],
+     "resources": [
+      "s3-public-assets"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "InternSandboxPolicy",
+   "statements": [
+    {
+     "actions": [
+      "s3:*"
+     ],
+     "resources": [
+      "sandbox-bucket"
+     ]
+    },
+    {
+     "actions": [
+      "iam:PassRole"
+     ],
+     "resources": [
+      "lambda-exec-role"
+     ]
+    },
+    {
+     "actions": [
+      "lambda:CreateFunction",
+      "lambda:InvokeFunction"
+     ],
+     "resources": [
+      "lambda-functions"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "DevPolicy",
+   "statements": [
+    {
+     "actions": [
+      "ec2:RunInstances"
+     ],
+     "resources": [
+      "ec2-instances"
+     ]
+    },
+    {
+     "actions": [
+      "s3:GetObject",
+      "s3:PutObject"
+     ],
+     "resources": [
+      "ci-artifacts"
+     ]
+    },
+    {
+     "actions": [
+      "iam:PassRole"
+     ],
+     "resources": [
+      "ec2-admin-role"
+     ]
+    },
+    {
+     "actions": [
+      "iam:CreatePolicyVersion"
+     ],
+     "resources": [
+      "DevPolicy"
+     ]
+    },
+    {
+     "actions": [
+      "cloudformation:CreateStack"
+     ],
+     "resources": [
+      "cfn-stacks"
+     ]
+    },
+    {
+     "actions": [
+      "iam:PassRole"
+     ],
+     "resources": [
+      "cfn-deploy-role"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "ContractorPolicy",
+   "statements": [
+    {
+     "actions": [
+      "s3:GetObject"
+     ],
+     "resources": [
+      "contractor-share"
+     ]
+    },
+    {
+     "actions": [
+      "iam:UpdateAssumeRolePolicy"
+     ],
+     "resources": [
+      "data-eng-role"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "DataTeamPolicy",
+   "statements": [
+    {
+     "actions": [
+      "s3:GetObject"
+     ],
+     "resources": [
+      "data-lake"
+     ]
+    },
+    {
+     "actions": [
+      "athena:StartQueryExecution"
+     ],
+     "resources": [
+      "warehouse"
+     ]
+    },
+    {
+     "actions": [
+      "iam:PassRole"
+     ],
+     "resources": [
+      "data-eng-role"
+     ]
+    },
+    {
+     "actions": [
+      "lambda:CreateFunction",
+      "lambda:InvokeFunction"
+     ],
+     "resources": [
+      "lambda-functions"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "DevOpsPolicy",
+   "statements": [
+    {
+     "actions": [
+      "ec2:RunInstances"
+     ],
+     "resources": [
+      "ec2-instances"
+     ]
+    },
+    {
+     "actions": [
+      "iam:PassRole"
+     ],
+     "resources": [
+      "ec2-admin-role"
+     ]
+    },
+    {
+     "actions": [
+      "iam:PassRole"
+     ],
+     "resources": [
+      "cfn-deploy-role"
+     ]
+    },
+    {
+     "actions": [
+      "cloudformation:CreateStack"
+     ],
+     "resources": [
+      "cfn-stacks"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "SREPolicy",
+   "statements": [
+    {
+     "actions": [
+      "ec2:*"
+     ],
+     "resources": [
+      "ec2-instances"
+     ]
+    },
+    {
+     "actions": [
+      "logs:GetLogEvents"
+     ],
+     "resources": [
+      "s3-logs"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "SecurityAuditPolicy",
+   "statements": [
+    {
+     "actions": [
+      "s3:GetObject"
+     ],
+     "resources": [
+      "audit-logs"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "PlatformAdminPolicy",
+   "statements": [
+    {
+     "actions": [
+      "iam:*"
+     ],
+     "resources": [
+      "iam-admin"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "SupportPolicy",
+   "statements": [
+    {
+     "actions": [
+      "s3:GetObject"
+     ],
+     "resources": [
+      "support-tickets"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "HRPolicy",
+   "statements": [
+    {
+     "actions": [
+      "s3:*"
+     ],
+     "resources": [
+      "hr-records"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "BillingPolicy",
+   "statements": [
+    {
+     "actions": [
+      "billing:*"
+     ],
+     "resources": [
+      "billing-api"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "CIPolicy",
+   "statements": [
+    {
+     "actions": [
+      "s3:*"
+     ],
+     "resources": [
+      "ci-artifacts"
+     ]
+    },
+    {
+     "actions": [
+      "ec2:RunInstances"
+     ],
+     "resources": [
+      "ec2-instances"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "EC2AdminPolicy",
+   "statements": [
+    {
+     "actions": [
+      "ec2:*"
+     ],
+     "resources": [
+      "ec2-instances"
+     ]
+    },
+    {
+     "actions": [
+      "rds:*"
+     ],
+     "resources": [
+      "prod-db"
+     ]
+    },
+    {
+     "actions": [
+      "secretsmanager:GetSecretValue"
+     ],
+     "resources": [
+      "secrets-vault"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "DataLakePolicy",
+   "statements": [
+    {
+     "actions": [
+      "s3:*"
+     ],
+     "resources": [
+      "data-lake"
+     ]
+    },
+    {
+     "actions": [
+      "redshift:*"
+     ],
+     "resources": [
+      "warehouse"
+     ]
+    },
+    {
+     "actions": [
+      "kms:Decrypt"
+     ],
+     "resources": [
+      "kms-keys"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "ETLPolicy",
+   "statements": [
+    {
+     "actions": [
+      "s3:*"
+     ],
+     "resources": [
+      "data-lake"
+     ]
+    },
+    {
+     "actions": [
+      "glue:*"
+     ],
+     "resources": [
+      "warehouse"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "LambdaAdminPolicy",
+   "statements": [
+    {
+     "actions": [
+      "lambda:*"
+     ],
+     "resources": [
+      "lambda-functions"
+     ]
+    },
+    {
+     "actions": [
+      "dynamodb:*"
+     ],
+     "resources": [
+      "customer-pii-db"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "CFNDeployPolicy",
+   "statements": [
+    {
+     "actions": [
+      "cloudformation:*"
+     ],
+     "resources": [
+      "cfn-stacks"
+     ]
+    },
+    {
+     "actions": [
+      "iam:*"
+     ],
+     "resources": [
+      "iam-admin"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "AdminPolicy",
+   "statements": [
+    {
+     "actions": [
+      "iam:*"
+     ],
+     "resources": [
+      "iam-admin"
+     ]
+    },
+    {
+     "actions": [
+      "backup:*"
+     ],
+     "resources": [
+      "backup-vault"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "ProdAppPolicy",
+   "statements": [
+    {
+     "actions": [
+      "rds:*"
+     ],
+     "resources": [
+      "prod-db"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "LogsPolicy",
+   "statements": [
+    {
+     "actions": [
+      "s3:GetObject",
+      "s3:PutObject"
+     ],
+     "resources": [
+      "s3-logs"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "MonitoringPolicy",
+   "statements": [
+    {
+     "actions": [
+      "cloudwatch:*"
+     ],
+     "resources": [
+      "metrics"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "BackupPolicy",
+   "statements": [
+    {
+     "actions": [
+      "backup:*"
+     ],
+     "resources": [
+      "backup-vault"
+     ]
+    },
+    {
+     "actions": [
+      "s3:GetObject"
+     ],
+     "resources": [
+      "s3-logs"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "AuditPolicy",
+   "statements": [
+    {
+     "actions": [
+      "s3:GetObject"
+     ],
+     "resources": [
+      "audit-logs"
+     ]
+    }
+   ]
+  },
+  {
+   "name": "SupportRolePolicy",
+   "statements": [
+    {
+     "actions": [
+      "s3:GetObject"
+     ],
+     "resources": [
+      "support-tickets"
+     ]
+    },
+    {
+     "actions": [
+      "s3:GetObject"
+     ],
+     "resources": [
+      "cdn-config"
+     ]
+    }
+   ]
+  }
+ ],
+ "groups": [
+  {
+   "name": "interns",
+   "policies": [
+    "InternPolicy"
+   ]
+  },
+  {
+   "name": "developers",
+   "policies": [
+    "DevPolicy"
+   ]
+  },
+  {
+   "name": "contractors",
+   "policies": [
+    "ContractorPolicy"
+   ]
+  },
+  {
+   "name": "data-team",
+   "policies": [
+    "DataTeamPolicy"
+   ]
+  },
+  {
+   "name": "devops",
+   "policies": [
+    "DevOpsPolicy"
+   ]
+  },
+  {
+   "name": "sre",
+   "policies": [
+    "SREPolicy"
+   ]
+  },
+  {
+   "name": "finance",
+   "policies": [
+    "BillingPolicy"
+   ]
+  },
+  {
+   "name": "security-audit",
+   "policies": [
+    "SecurityAuditPolicy"
+   ]
+  },
+  {
+   "name": "platform-admins",
+   "policies": [
+    "PlatformAdminPolicy"
+   ]
+  },
+  {
+   "name": "support",
+   "policies": [
+    "SupportPolicy"
+   ]
+  },
+  {
+   "name": "hr",
+   "policies": [
+    "HRPolicy"
+   ]
+  }
+ ],
+ "users": [
+  {
+   "name": "intern",
+   "groups": [
+    "interns",
+    "developers",
+    "contractors",
+    "data-team"
+   ],
+   "policies": [
+    "InternSandboxPolicy"
+   ]
+  },
+  {
+   "name": "intern-priya",
+   "groups": [
+    "interns"
+   ],
+   "policies": []
+  },
+  {
+   "name": "dev-alice",
+   "groups": [
+    "developers"
+   ],
+   "policies": []
+  },
+  {
+   "name": "dev-ravi",
+   "groups": [
+    "developers"
+   ],
+   "policies": []
+  },
+  {
+   "name": "qa-judy",
+   "groups": [
+    "developers"
+   ],
+   "policies": []
+  },
+  {
+   "name": "devops-bob",
+   "groups": [
+    "devops"
+   ],
+   "policies": []
+  },
+  {
+   "name": "sre-dan",
+   "groups": [
+    "sre"
+   ],
+   "policies": []
+  },
+  {
+   "name": "data-eve",
+   "groups": [
+    "data-team"
+   ],
+   "policies": []
+  },
+  {
+   "name": "data-mina",
+   "groups": [
+    "data-team"
+   ],
+   "policies": []
+  },
+  {
+   "name": "analyst-carol",
+   "groups": [
+    "finance"
+   ],
+   "policies": []
+  },
+  {
+   "name": "finance-ivan",
+   "groups": [
+    "finance"
+   ],
+   "policies": []
+  },
+  {
+   "name": "sec-frank",
+   "groups": [
+    "security-audit"
+   ],
+   "policies": []
+  },
+  {
+   "name": "admin-grace",
+   "groups": [
+    "platform-admins"
+   ],
+   "policies": []
+  },
+  {
+   "name": "contractor-heidi",
+   "groups": [
+    "contractors"
+   ],
+   "policies": []
+  },
+  {
+   "name": "support-ken",
+   "groups": [
+    "support"
+   ],
+   "policies": []
+  },
+  {
+   "name": "hr-leo",
+   "groups": [
+    "hr"
+   ],
+   "policies": []
+  }
+ ],
+ "roles": [
+  {
+   "name": "ec2-admin-role",
+   "trust": [],
+   "policies": [
+    "EC2AdminPolicy"
+   ]
+  },
+  {
+   "name": "ci-role",
+   "trust": [
+    "developers"
+   ],
+   "policies": [
+    "CIPolicy"
+   ]
+  },
+  {
+   "name": "data-eng-role",
+   "trust": [
+    "data-team"
+   ],
+   "policies": [
+    "DataLakePolicy"
+   ]
+  },
+  {
+   "name": "etl-role",
+   "trust": [
+    "data-team"
+   ],
+   "policies": [
+    "ETLPolicy"
+   ]
+  },
+  {
+   "name": "lambda-exec-role",
+   "trust": [],
+   "policies": [
+    "LambdaAdminPolicy"
+   ]
+  },
+  {
+   "name": "cfn-deploy-role",
+   "trust": [],
+   "policies": [
+    "CFNDeployPolicy"
+   ]
+  },
+  {
+   "name": "admin-role",
+   "trust": [
+    "platform-admins"
+   ],
+   "policies": [
+    "AdminPolicy"
+   ]
+  },
+  {
+   "name": "app-role",
+   "trust": [],
+   "policies": [
+    "ProdAppPolicy"
+   ]
+  },
+  {
+   "name": "billing-role",
+   "trust": [
+    "finance"
+   ],
+   "policies": [
+    "BillingPolicy"
+   ]
+  },
+  {
+   "name": "logs-role",
+   "trust": [],
+   "policies": [
+    "LogsPolicy"
+   ]
+  },
+  {
+   "name": "monitoring-role",
+   "trust": [
+    "sre"
+   ],
+   "policies": [
+    "MonitoringPolicy"
+   ]
+  },
+  {
+   "name": "backup-role",
+   "trust": [
+    "devops"
+   ],
+   "policies": [
+    "BackupPolicy"
+   ]
+  },
+  {
+   "name": "audit-role",
+   "trust": [
+    "security-audit"
+   ],
+   "policies": [
+    "AuditPolicy"
+   ]
+  },
+  {
+   "name": "support-role",
+   "trust": [
+    "support"
+   ],
+   "policies": [
+    "SupportRolePolicy"
+   ]
+  }
+ ]
 }

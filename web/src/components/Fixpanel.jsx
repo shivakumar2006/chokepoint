@@ -22,7 +22,7 @@ function OptionCard({ im, label, min, active, onClick }) {
       </div>
       {im.remove.map((r, i) => <div key={i} className="font-mono text-[12px] text-slate-300">remove {r}</div>)}
       <div className="mt-1.5 text-[11px] text-slate-500">
-        kills {im.attack_paths_killed}/{im.attack_paths_total} paths · {im.collateral_permissions_lost.length} permissions lost by legit users
+        kills {im.attack_paths_killed}/{im.attack_paths_total} paths · {im.collateral_permissions_lost.length} permissions lost by other users{im.equivalent_variants > 0 ? ` · +${im.equivalent_variants} equivalent variant(s)` : ''}
       </div>
     </button>
   )
@@ -45,6 +45,9 @@ export default function FixPanel({ source, mincut, selIds, onSelect, impact, onA
     )
   }
 
+  const noSafe = !mincut.min_cut_size
+  // legit access that blocks every complete fix (only meaningful when no safe fix exists)
+  const blockers = [...new Set(mincut.best_single_fixes.filter((s) => s.attacker_contained).flatMap((s) => s.legit_access_broken))]
   const minKeys = new Set(mincut.min_cut_options.map((o) => o.remove_ids.join(',')))
   const others = mincut.best_single_fixes.filter((s) => !minKeys.has(s.remove_ids.join(','))).slice(0, 5)
   const keyOf = (im) => im.remove_ids.join(',')
@@ -63,13 +66,22 @@ export default function FixPanel({ source, mincut, selIds, onSelect, impact, onA
   return (
     <div className="space-y-3">
       {result && <ApplyResult r={result} />}
-      <div className="text-xs text-slate-400">
-        Minimum set of permissions that closes <b className="text-slate-200">all {mincut.attack_paths_total}</b> attack paths while every legit access keeps working. Pick one to see the counterfactual.
-      </div>
+      {noSafe ? (
+        <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-100">
+          <div className="mb-1 flex items-center gap-2 font-semibold text-amber-300"><TriangleAlert size={16} /> No safe fix exists for {source}</div>
+          Every way to block all {mincut.attack_paths_total} paths also breaks access that is labeled <b>legit</b>
+          {blockers.length > 0 && <> ({blockers.map((b) => <code key={b} className="mx-0.5 text-amber-50">{b}</code>)})</>}.
+          So this access is either intended and has to be accepted, or it is mislabeled in <code>data/legit.json</code>. Nothing will be applied automatically.
+        </div>
+      ) : (
+        <div className="text-xs text-slate-400">
+          Minimum set of permissions that closes <b className="text-slate-200">all {mincut.attack_paths_total}</b> attack paths while every legit access keeps working. Pick one to see the counterfactual.
+        </div>
+      )}
       {mincut.min_cut_options.map((o, i) => (
         <OptionCard key={keyOf(o)} im={o} min label={`Option ${String.fromCharCode(65 + i)}`} active={isActive(o)} onClick={() => onSelect(o.remove_ids)} />
       ))}
-      {others.length > 0 && <div className="pt-1 text-[11px] uppercase tracking-wider text-slate-500">Other single fixes (insufficient or unsafe)</div>}
+      {others.length > 0 && <div className="pt-1 text-[11px] uppercase tracking-wider text-slate-500">{noSafe ? 'Fixes that were tried (all unsafe or incomplete)' : 'Other single fixes (insufficient or unsafe)'}</div>}
       {others.map((o) => <OptionCard key={keyOf(o)} im={o} label={o.remove_ids[0]} active={isActive(o)} onClick={() => onSelect(o.remove_ids)} />)}
       {mincut.rejected_because_legit_breaks.length > 0 && (
         <>

@@ -185,7 +185,7 @@ func main() {
 			fail(w, 500, err)
 			return
 		}
-		writeJSON(w, 200, s.MinCut(3))
+		writeJSON(w, 200, s.MinCut(5))
 	})
 
 	mux.HandleFunc("/api/simulate", func(w http.ResponseWriter, r *http.Request) {

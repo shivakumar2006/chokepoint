@@ -162,7 +162,7 @@ Process:
 4. Only if simulate_fix shows attacker_contained=true and legit_access_broken is empty, call apply_fix. A human may reject it; if so, say so and stop.
 5. Finish with a short report: attack paths before/after (use apply_fix's verified numbers), what was changed, what legit permissions were lost, and the reasoning path for the main attack (cite the hops).
 
-Rules: use only numbers returned by tools, never invent any. State limits honestly: the model covers explicit allow statements only (no conditions, SCPs or permission boundaries) and 2 privilege-escalation patterns. Keep the report under 200 words.`
+Rules: use only numbers returned by tools, never invent any. State limits honestly: the model covers explicit allow statements only (no conditions, SCPs or permission boundaries) and 5 privilege-escalation patterns. Keep the report under 200 words.`
 
 func main() {
 	mcpCmd := flag.String("mcp", "go run ./mcp", "command that starts the MCP server")

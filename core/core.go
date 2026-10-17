@@ -294,6 +294,7 @@ type Impact struct {
 	StillReachable    []string `json:"still_reachable_crown_jewels"`
 	LegitBroken       []string `json:"legit_access_broken"`
 	Collateral        []string `json:"collateral_permissions_lost"`
+	Variants          int      `json:"equivalent_variants,omitempty"`
 }
 
 // Eval = simulate_fix: what happens if exactly these permission edges are removed.
@@ -322,6 +323,9 @@ func (s *Session) Eval(ids []string) Impact {
 		}
 	}
 	for _, u := range x.Users {
+		if u == s.Source {
+			continue // losing the attacker's own access is the goal, not collateral
+		}
 		after := x.effPerms(u, removed)
 		for id := range s.basePerm[u] {
 			if !after[id] {
@@ -354,23 +358,50 @@ type MinCutResult struct {
 	Note       string   `json:"note"`
 }
 
-func combos(items []string, k int, f func([]string)) {
-	var rec func(start int, cur []string)
-	rec = func(start int, cur []string) {
-		if len(cur) == k {
-			f(cur)
-			return
+// shapeKey groups fixes that are the same idea (e.g. removing any one of three permissions of the same
+// policy): same owner of each removed edge and same kind of edge.
+func (s *Session) shapeKey(im Impact) string {
+	var parts []string
+	for _, id := range im.RemoveIDs {
+		e := s.G.Edges[s.G.byID[id]]
+		class := "perm"
+		switch e.Type {
+		case "MEMBER_OF":
+			class = "member"
+		case "HAS_POLICY":
+			class = "attach"
+		case "CAN_ASSUME":
+			class = "trust"
 		}
-		for i := start; i < len(items); i++ {
-			rec(i+1, append(cur[:len(cur):len(cur)], items[i]))
+		parts = append(parts, e.From+"|"+class+"|"+e.To)
+		if class == "perm" {
+			parts[len(parts)-1] = e.From + "|perm"
 		}
 	}
-	rec(0, nil)
+	sort.Strings(parts)
+	return strings.Join(parts, ";")
+}
+
+func (s *Session) dedupe(in []Impact) []Impact {
+	seen := map[string]int{}
+	var out []Impact
+	for _, im := range in {
+		k := s.shapeKey(im)
+		if i, ok := seen[k]; ok {
+			out[i].Variants++
+			continue
+		}
+		seen[k] = len(out)
+		out = append(out, im)
+	}
+	return out
 }
 
 // MinCut finds the smallest set of real permission edges whose removal contains the attacker
 // while every legit access keeps working. Derived escalation edges are ANDs of permissions, which
-// plain max-flow cannot model, so this is an exact search over candidate edges (fine up to ~30).
+// plain max-flow cannot model, so this is an exact search over candidate edges.
+// To stay fast on bigger graphs, each candidate carries a bitset of the attack paths it kills; the
+// expensive Eval (legit access, collateral) only runs on sets that already cover every path.
 func (s *Session) MinCut(maxK int) MinCutResult {
 	res := MinCutResult{Source: s.Source, PathsTotal: len(s.Paths), Candidates: len(s.Candidates),
 		Singles: []Impact{}, Options: []Impact{}, Rejected: []Impact{}}
@@ -390,40 +421,112 @@ func (s *Session) MinCut(maxK int) MinCutResult {
 		res.Singles = append(res.Singles, im)
 	}
 
+	nw := (len(s.Paths) + 63) / 64
+	full := make([]uint64, nw)
+	for p := range s.Paths {
+		full[p/64] |= 1 << uint(p%64)
+	}
+	cov := make([][]uint64, len(s.Candidates))
+	for i, id := range s.Candidates {
+		cov[i] = make([]uint64, nw)
+		for p := range s.Paths {
+			if s.idSets[p][id] {
+				cov[i][p/64] |= 1 << uint(p%64)
+			}
+		}
+	}
+	const evalCap = 40000
+
 	for k := 1; k <= maxK; k++ {
 		var ok, bad []Impact
-		combos(s.Candidates, k, func(S []string) {
-			im := s.Eval(S)
-			if !im.AttackerContained {
+		evaluated := 0
+		truncated := false
+		cur := make([]int, 0, k)
+		bufs := make([][]uint64, k+1)
+		for i := range bufs {
+			bufs[i] = make([]uint64, nw)
+		}
+		var rec func(start int)
+		rec = func(start int) {
+			if truncated {
 				return
 			}
-			if len(im.LegitBroken) > 0 {
-				bad = append(bad, im)
-			} else {
-				ok = append(ok, im)
+			d := len(cur)
+			if d == k {
+				for w := range full {
+					if bufs[d][w]&full[w] != full[w] {
+						return
+					}
+				}
+				evaluated++
+				if evaluated > evalCap {
+					truncated = true
+					return
+				}
+				ids := make([]string, k)
+				for i, c := range cur {
+					ids[i] = s.Candidates[c]
+				}
+				im := s.Eval(ids)
+				if !im.AttackerContained {
+					return
+				}
+				if len(im.LegitBroken) > 0 {
+					bad = append(bad, im)
+				} else {
+					ok = append(ok, im)
+				}
+				return
 			}
-		})
+			for i := start; i < len(cov); i++ {
+				for w := 0; w < nw; w++ {
+					bufs[d+1][w] = bufs[d][w] | cov[i][w]
+				}
+				cur = append(cur, i)
+				rec(i + 1)
+				cur = cur[:len(cur)-1]
+			}
+		}
+		rec(0)
+
 		if len(ok) == 0 {
 			continue
+		}
+		// rank: least collateral for other users, then fixes closest to the attacker (root cause), then by id
+		root := func(im Impact) int {
+			n := 0
+			for _, id := range im.RemoveIDs {
+				if e := s.G.Edges[s.G.byID[id]]; e.From == s.Source {
+					n++
+				}
+			}
+			return n
 		}
 		sort.SliceStable(ok, func(i, j int) bool {
 			if len(ok[i].Collateral) != len(ok[j].Collateral) {
 				return len(ok[i].Collateral) < len(ok[j].Collateral)
 			}
+			if ri, rj := root(ok[i]), root(ok[j]); ri != rj {
+				return ri > rj
+			}
 			return strings.Join(ok[i].RemoveIDs, ",") < strings.Join(ok[j].RemoveIDs, ",")
 		})
 		res.Size = k
-		for i, im := range ok {
+		uniq := s.dedupe(ok)
+		for i, im := range uniq {
 			if i < 5 {
 				res.Options = append(res.Options, im)
 			}
 		}
-		for i, im := range bad {
+		for i, im := range s.dedupe(bad) {
 			if i < 3 {
 				res.Rejected = append(res.Rejected, im)
 			}
 		}
-		res.Note = "exact minimum; ranked by permissions legit users would lose"
+		res.Note = fmt.Sprintf("exact minimum over %d candidate permissions; %d distinct fix(es) of this size (plus equivalent variants), ranked by permissions other users would lose", len(s.Candidates), len(s.dedupe(ok)))
+		if truncated {
+			res.Note += " (search truncated: more combinations exist)"
+		}
 		return res
 	}
 	res.Note = fmt.Sprintf("no legit-safe cut of size <= %d", maxK)

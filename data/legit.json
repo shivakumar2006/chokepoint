@@ -1,8 +1,98 @@
 [
-  {"principal": "ci-role", "resource": "ci-artifacts"},
-  {"principal": "dev-alice", "resource": "ci-artifacts"},
-  {"principal": "app-role", "resource": "prod-db"},
-  {"principal": "billing-role", "resource": "billing-api"},
-  {"principal": "logs-role", "resource": "s3-logs"},
-  {"principal": "devops", "resource": "iam-admin"}
+ {
+  "principal": "ci-role",
+  "resource": "ci-artifacts"
+ },
+ {
+  "principal": "developers",
+  "resource": "ci-artifacts"
+ },
+ {
+  "principal": "dev-alice",
+  "resource": "ci-artifacts"
+ },
+ {
+  "principal": "dev-ravi",
+  "resource": "ci-artifacts"
+ },
+ {
+  "principal": "app-role",
+  "resource": "prod-db"
+ },
+ {
+  "principal": "ec2-admin-role",
+  "resource": "prod-db"
+ },
+ {
+  "principal": "billing-role",
+  "resource": "billing-api"
+ },
+ {
+  "principal": "analyst-carol",
+  "resource": "billing-api"
+ },
+ {
+  "principal": "logs-role",
+  "resource": "s3-logs"
+ },
+ {
+  "principal": "data-team",
+  "resource": "data-lake"
+ },
+ {
+  "principal": "data-eve",
+  "resource": "kms-keys"
+ },
+ {
+  "principal": "data-eng-role",
+  "resource": "kms-keys"
+ },
+ {
+  "principal": "devops",
+  "resource": "backup-vault"
+ },
+ {
+  "principal": "admin-grace",
+  "resource": "iam-admin"
+ },
+ {
+  "principal": "platform-admins",
+  "resource": "iam-admin"
+ },
+ {
+  "principal": "admin-role",
+  "resource": "backup-vault"
+ },
+ {
+  "principal": "lambda-exec-role",
+  "resource": "customer-pii-db"
+ },
+ {
+  "principal": "cfn-deploy-role",
+  "resource": "iam-admin"
+ },
+ {
+  "principal": "security-audit",
+  "resource": "audit-logs"
+ },
+ {
+  "principal": "support-ken",
+  "resource": "support-tickets"
+ },
+ {
+  "principal": "hr-leo",
+  "resource": "hr-records"
+ },
+ {
+  "principal": "sre-dan",
+  "resource": "ec2-instances"
+ },
+ {
+  "principal": "contractor-heidi",
+  "resource": "contractor-share"
+ },
+ {
+  "principal": "intern-priya",
+  "resource": "s3-public-assets"
+ }
 ]

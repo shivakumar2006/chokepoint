@@ -20,9 +20,9 @@ const STEPS = [
 const CHAIN = ['intern', 'developers', 'ec2-admin-role', 'EC2AdminPolicy', 'prod-db']
 const LIMITS = [
   'Models explicit allow statements only — no conditions, SCPs or permission boundaries.',
-  'Two privilege-escalation patterns are implemented: PassRole + RunInstances, and CreatePolicyVersion on an attached policy.',
+  'Five privilege-escalation patterns are implemented: PassRole + RunInstances / Lambda / CloudFormation, CreatePolicyVersion on an attached policy, and UpdateAssumeRolePolicy. Others are not modelled.',
   '“Legit access” is a labeled set in the demo data. A real deployment would derive it from usage logs.',
-  'The cut is an exact search, built for graphs with tens of candidate permissions, not thousands.',
+  'The cut is an exact search, built for graphs with tens of candidate permissions (about 30 in the demo), not thousands.',
   'Remediation is generated as reviewable commands. Nothing touches a real AWS account.',
 ]
 
@@ -168,7 +168,7 @@ function Example() {
           </svg>
         </div>
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-xl bg-slate-950/60 p-4"><div className="text-xs uppercase tracking-wider text-slate-500">Finds</div><div className="mt-1 text-sm text-slate-300">Every path from <span className="font-mono text-slate-100">intern</span> to the three crown jewels.</div></div>
+          <div className="rounded-xl bg-slate-950/60 p-4"><div className="text-xs uppercase tracking-wider text-slate-500">Finds</div><div className="mt-1 text-sm text-slate-300">Every path from <span className="font-mono text-slate-100">intern</span> to the six crown jewels.</div></div>
           <div className="rounded-xl bg-slate-950/60 p-4"><div className="text-xs uppercase tracking-wider text-slate-500">Compares</div><div className="mt-1 text-sm text-slate-300">A one-permission fix that kills everything vs. fixes that only kill part of it.</div></div>
           <div className="rounded-xl bg-slate-950/60 p-4"><div className="text-xs uppercase tracking-wider text-slate-500">Proves</div><div className="mt-1 text-sm text-slate-300">Re-runs the query after the change. The number on screen comes from the graph.</div></div>
         </div>

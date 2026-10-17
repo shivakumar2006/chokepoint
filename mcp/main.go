@@ -121,8 +121,8 @@ func call(name string, raw json.RawMessage) (interface{}, error) {
 		if err := needSource(); err != nil {
 			return nil, err
 		}
-		if a.MaxK <= 0 || a.MaxK > 4 {
-			a.MaxK = 3
+		if a.MaxK <= 0 || a.MaxK > 5 {
+			a.MaxK = 5
 		}
 		return core.NewSession(x, a.Source, 12).MinCut(a.MaxK), nil
 	case "simulate_fix":
@@ -211,8 +211,4 @@ func main() {
 			}
 		}
 	}
-	if err := in.Err(); err != nil {
-		fmt.Fprintln(os.Stderr, "scanner error:", err)
-	}
 }
-

@@ -140,7 +140,7 @@ export default function Console() {
       </main>
 
       <footer className="px-4 pb-2 text-center text-[11px] text-slate-600">
-        Explicit-allow model · 2 privilege-escalation patterns · legit access = labeled set in the demo data <ArrowRight size={10} className="inline" /> <a className="underline hover:text-slate-400" href="#/">about</a>
+        Explicit-allow model · 5 privilege-escalation patterns · legit access = labeled set in the demo data <ArrowRight size={10} className="inline" /> <a className="underline hover:text-slate-400" href="#/">about</a>
       </footer>
     </div>
   )
