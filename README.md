@@ -6,7 +6,7 @@ Chokepoint is an AI agent that maps cloud IAM as a graph in **FalkorDB**, finds 
 
 > Built for **Graph Hacks** (WeMakeDevs × FalkorDB) · **Track 01: Agents That Act on Connected Data**
 
-**Demo video:** `<add your video link here>` · **Blog post:** `<add your blog link here>`
+**Demo video:** `https://www.youtube.com/watch?v=KsEpru-9Sng`
 
 <!-- Add three screenshots to docs/ and these will render:
 ![Landing](docs/landing.png)
